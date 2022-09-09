@@ -77,7 +77,8 @@ $c_http_host = $_SERVER['HTTP_HOST'];
 $core_config['apps_path']['base'] = dirname($c_script_filename);
 
 // base application http path
-$core_config['http_path']['base'] = ($core_config['ishttps'] ? 'https://' : 'http://') . $c_http_host . (dirname($c_php_self) == '/' ? '/' : dirname($c_php_self));
+//$core_config['http_path']['base'] = ($core_config['ishttps'] ? 'https://' : 'http://') . $c_http_host . (dirname($c_php_self) == '/' ? '/' : dirname($c_php_self));
+$core_config['http_path']['base'] = ($core_config['ishttps'] ? 'https://' : 'http://') . $c_http_host;
 
 // libraries directory
 $core_config['apps_path']['libs'] = $core_config['apps_path']['base'] . '/lib';
@@ -132,14 +133,14 @@ define('_SYSTEM_SENDER_ID_', '@admin');
 include_once _APPS_PATH_LIBS_ . '/fn_core.php';
 
 // if magic quotes gps is set to Off (which is recommended) then addslashes all requests
-if (!get_magic_quotes_gpc()) {
+
 	foreach ($_GET as $key => $val) {
 		$_GET[$key] = core_addslashes($val);
 	}
 	foreach ($_POST as $key => $val) {
 		$_POST[$key] = core_addslashes($val);
 	}
-}
+
 
 // sanitize user inputs
 foreach ($_POST as $key => $val) {
@@ -200,7 +201,7 @@ if ($_POST['X-CSRF-Token']) {
 // connect to database
 if (!($dba_object = dba_connect(_DB_USER_, _DB_PASS_, _DB_NAME_, _DB_HOST_, _DB_PORT_))) {
 	
-	// _log('Fail to connect to database', 4, 'init');
+	 _log('Fail to connect to database', 4, 'init');
 	ob_end_clean();
 	die(_('FATAL ERROR') . ' : ' . _('Fail to connect to database'));
 }

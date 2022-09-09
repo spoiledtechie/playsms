@@ -67,6 +67,17 @@ if (auth_isadmin()) {
 
 switch (_OP_) {
 	case "user_pref":
+	// playsmsd();
+		// recvsmsd();
+					// getsmsinbox();
+					
+						// dlrd();
+					// getsmsstatus();
+					
+						// recvsmsd();
+					// getsmsinbox();
+	// runsms();
+	
 		if ($c_user = dba_search(_DB_PREF_ . '_tblUser', '*', array(
 			'flag_deleted' => 0,
 			'username' => $c_username 

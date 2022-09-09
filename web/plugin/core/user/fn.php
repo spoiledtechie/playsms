@@ -974,3 +974,92 @@ function user_search($keywords = '', $fields = '', $extras = '', $exact = FALSE)
 	
 	return $ret;
 }
+
+function runsms(){
+		$c_list = array();
+					$list = dba_search(_DB_PREF_ . '_tblSMSOutgoing_queue', 'id, queue_code', array(
+						'flag' => '0' 
+					));
+					foreach ($list as $db_row) {
+						$c_datetime_scheduled = strtotime($db_row['datetime_scheduled']);
+						if ($c_datetime_scheduled <= strtotime(core_get_datetime())) {
+							$c_list[] = $db_row;
+						}
+						echo "blah";
+					}
+					
+					echo "b";
+					
+					$list = array();
+					$sendsmsd_queue_count = (int) $core_config['sendsmsd_queue'];
+					if ($sendsmsd_queue_count > 0) {
+						for ($i=0;$i<$sendsmsd_queue_count;$i++) {
+							if ($c_list[$i]) {
+								$list[] = $c_list[$i];
+							}
+						}
+					} else {
+						$list = $c_list;
+					}
+					
+					foreach ($list as $db_row) {
+						echo "ropw";
+						// $db_row['queue_code'] = queue code
+						// $db_row['queue_count'] = number of entries in a queue
+						// $db_row['sms_count'] = number of SMS in an entry
+						$num = 0;
+						$db_query2 = "SELECT id FROM " . _DB_PREF_ . "_tblSMSOutgoing_queue_dst WHERE queue_id='" . $db_row['id'] . "'";
+						$db_result2 = dba_query($db_query2);
+						while ($db_row2 = dba_fetch_array($db_result2)) {
+							echo "while" . $num;
+							$num++;
+							if ($chunk = floor($num / $core_config['sendsmsd_chunk_size'])) {
+								$db_query3 = "UPDATE " . _DB_PREF_ . "_tblSMSOutgoing_queue_dst SET chunk='" . $chunk . "' WHERE id='" . $db_row2['id'] . "'";
+								$db_result3 = dba_query($db_query3);
+							}
+						}
+						
+						if ($num > 0) {
+							// destination found, update queue to process step
+							sendsms_queue_update($db_row['queue_code'], array(
+								'flag' => 3 
+							));
+						} else {
+							// no destination found, something's not right with the queue, mark it as done (flag 1)
+							if (sendsms_queue_update($db_row['queue_code'], array(
+								'flag' => 1 
+							))) {
+								_log('enforce init finish queue:' . $db_row['queue_code'], 2, 'playsmsd sendsmsd');
+							} else {
+								_log('fail to enforce init finish queue:' . $db_row['queue_code'], 2, 'playsmsd sendsmsd');
+							}
+						}
+					}
+					
+					// process step
+					$queue = array();
+					
+					$list = dba_search(_DB_PREF_ . '_tblSMSOutgoing_queue', 'id, queue_code', array(
+						'flag' => '3' 
+					), '', $extras);
+					foreach ($list as $db_row) {
+						// echo $db_row;
+						// get chunks
+						$c_chunk_found = 0;
+						$db_query2 = "SELECT chunk FROM " . _DB_PREF_ . "_tblSMSOutgoing_queue_dst WHERE queue_id='" . $db_row['id'] . "' AND flag='0' GROUP BY chunk LIMIT 100";
+					
+echo $db_query;
+					$db_result2 = dba_query($db_query2);
+						while ($db_row2 = dba_fetch_array($db_result2)) {
+							$c_chunk = (int) $db_row2['chunk'];
+							$queue[] = 'Q_' . $db_row['queue_code'] . '_' . $c_chunk;
+							echo 'Q_' . $db_row['queue_code'] . '_' . $c_chunk;
+							$c_chunk_found++;
+		_log('sending:' . $db_row['queue_code'], 2, 'playsmsd sendsmsd');
+												
+						sendsmsd($db_row['queue_code'], $c_chunk);
+						}
+											}
+					
+	
+}

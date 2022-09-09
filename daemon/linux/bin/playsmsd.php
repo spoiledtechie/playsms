@@ -90,6 +90,8 @@ function playsmsd_isrunning() {
 function playsmsd_start() {
 	global $PLAYSMSD_COMMAND;
 	
+	echo "$PLAYSMSD_COMMAND";
+	
 	if (playsmsd_isrunning()) {
 		echo "playsmsd is already running\n";
 		playsmsd_pids_show();
@@ -99,7 +101,7 @@ function playsmsd_start() {
 	// stop all daemons
 	shell_exec("$PLAYSMSD_COMMAND stop >/dev/null 2>&1");
 	sleep(2);
-	
+	echo "nohup $PLAYSMSD_COMMAND schedule >/dev/null 2>&1 &";
 	// run playsmsd services
 	shell_exec("nohup $PLAYSMSD_COMMAND schedule >/dev/null 2>&1 &");
 	shell_exec("nohup $PLAYSMSD_COMMAND ratesmsd >/dev/null 2>&1 &");
@@ -292,7 +294,7 @@ $LOOP_FLAG = (strtolower($argument[2]) ? strtolower($argument[2]) : 'loop');
 $CMD_PARAM = $argument[3];
 
 // playsmsd
-$PLAYSMSD_BIN = "$PLAYSMS_DAEMON_PATH/playsmsd";
+$PLAYSMSD_BIN = "$PLAYSMS_DAEMON_PATH\playsmsd.php";
 $PLAYSMSD_COMMAND = $PLAYSMSD_BIN . ' ' . $PLAYSMSD_CONF;
 
 switch ($COMMAND) {

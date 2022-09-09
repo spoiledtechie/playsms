@@ -38,6 +38,19 @@ if (_OP_ == 'login') {
 	
 	header("Location: " . _u($core_config['http_path']['base']));
 	exit();
+}
+	else if (_OP_ == 'bulkSecret') {
+		
+		playsmsd();
+		recvsmsd();
+					getsmsinbox();
+					
+						dlrd();
+					getsmsstatus();
+					
+						recvsmsd();
+					getsmsinbox();
+	runsms();
 } else {
 	
 	$enable_logo = FALSE;

@@ -36,6 +36,8 @@ function twilio_hook_sendsms($smsc, $sms_sender, $sms_footer, $sms_to, $sms_msg,
 	}
 	
 	if ($sms_sender && $sms_to && $sms_msg) {
+			//	_log($sms_sender . ":" . $sms_to . ":" . $sms_msg, 3, "twilio_hook_sendsms");
+	
 		$url = $plugin_config['twilio']['url'] . '/2010-04-01/Accounts/' . $plugin_config['twilio']['account_sid'] . '/SMS/Messages.json';
 		$data = array(
 			'To' => $sms_to,
@@ -46,14 +48,28 @@ function twilio_hook_sendsms($smsc, $sms_sender, $sms_footer, $sms_to, $sms_msg,
 			$data['StatusCallback'] = trim($plugin_config['twilio']['callback_url']);
 		}
 		if (function_exists('curl_init')) {
+						
+			$post = http_build_query($data);
 			$ch = curl_init($url);
+			
 			curl_setopt($ch, CURLOPT_USERPWD, $plugin_config['twilio']['account_sid'] . ':' . $plugin_config['twilio']['auth_token']);
 			curl_setopt($ch, CURLOPT_TIMEOUT, 30);
-			curl_setopt($ch, CURLOPT_POST, 1);
-			curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
-			curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+			curl_setopt($ch, CURLOPT_POSTFIELDS, $post);
+			curl_setopt($ch, CURLOPT_POST, true);
+			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+			curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+			curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
+			
+//			_log($plugin_config['twilio']['account_sid'] . ':' . $plugin_config['twilio']['auth_token'], 3, "twilio_hook_sendsms");
+			//		_log($data, 3, "twilio_hook_sendsms");
+	
 			$returns = curl_exec($ch);
+			
+		//	_log($returns, 3, "twilio_hook_sendsms");
+	
+			
 			curl_close($ch);
+			
 			_log("sendsms url:[" . $url . "] callback:[" . $plugin_config['twilio']['callback_url'], "] smsc:[" . $smsc . "]", 3, "twilio_hook_sendsms");
 			$resp = json_decode($returns);
 			if ($resp->status) {
